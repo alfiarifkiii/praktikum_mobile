@@ -12,10 +12,14 @@ class BMIScreenState extends State<BMIScreen> {
   final _tbController = TextEditingController();
 
   double? _hasilBMI;
-  String _keterangan = "Masukan Data Anda";
-  String _jenisKelamin = "Laki-laki"; // State untuk jenis kelamin
+  String _keterangan = "Silakan isi data Anda";
+  String _jenisKelamin = "Laki-laki";
+
+  final Color _primaryColor = const Color(0xFF36C576);
 
   void _hitungBMI() {
+    FocusScope.of(context).unfocus();
+
     final double bb = double.tryParse(_bbController.text) ?? 0;
     final double tbCm = double.tryParse(_tbController.text) ?? 0;
 
@@ -25,7 +29,6 @@ class BMIScreenState extends State<BMIScreen> {
         final double bmi = bb / (tbM * tbM);
         _hasilBMI = bmi;
 
-        // Logika dipisah berdasarkan jenis kelamin
         if (_jenisKelamin == 'Laki-laki') {
           if (bmi < 18.5) {
             _keterangan = "Kurus (Kekurangan berat badan)";
@@ -40,28 +43,28 @@ class BMIScreenState extends State<BMIScreen> {
           if (bmi < 18.5) {
             _keterangan = "Kurus (Kebanyakan diet)";
           } else if (bmi < 23) {
-            // Batas atas ideal lebih rendah
             _keterangan = "Ideal (Standar Alfi)";
           } else if (bmi < 28) {
-            _keterangan = "Gendut (Olaharaga Bos)";
+            _keterangan = "Gendut (Olahraga Bos)";
           } else {
             _keterangan = "OBESITAS";
           }
         }
       } else {
         _hasilBMI = null;
-        _keterangan = "Masukan Data Yang Valid";
+        _keterangan = "Masukan Data Yang Valid!";
       }
     });
   }
 
   void _reset() {
+    FocusScope.of(context).unfocus();
     setState(() {
       _bbController.clear();
       _tbController.clear();
       _hasilBMI = null;
-      _keterangan = "Masukan Data Anda";
-      _jenisKelamin = "Laki-laki"; // Reset ke default
+      _keterangan = "Silakan isi data Anda";
+      _jenisKelamin = "Laki-laki";
     });
   }
 
@@ -72,130 +75,211 @@ class BMIScreenState extends State<BMIScreen> {
     super.dispose();
   }
 
+  Widget _buildGenderCard(String title, IconData icon) {
+    bool isSelected = _jenisKelamin == title;
+    return Expanded(
+      child: GestureDetector(
+        onTap: () {
+          setState(() {
+            _jenisKelamin = title;
+          });
+        },
+        child: AnimatedContainer(
+          duration: const Duration(milliseconds: 300),
+          padding: const EdgeInsets.symmetric(vertical: 20),
+          decoration: BoxDecoration(
+            color: isSelected ? _primaryColor.withOpacity(0.2) : Colors.white,
+            borderRadius: BorderRadius.circular(15),
+            border: Border.all(
+              color: isSelected ? _primaryColor : Colors.grey.shade300,
+              width: 2,
+            ),
+          ),
+          child: Column(
+            children: [
+              Icon(
+                icon,
+                size: 50,
+                color: isSelected ? _primaryColor : Colors.grey,
+              ),
+              const SizedBox(height: 10),
+              Text(
+                title,
+                style: TextStyle(
+                  fontSize: 16,
+                  fontWeight: FontWeight.bold,
+                  color: isSelected ? _primaryColor : Colors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+      ),
+    );
+  }
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
+      backgroundColor: Colors.grey.shade50,
       appBar: AppBar(
-        backgroundColor: const Color.fromARGB(255, 54, 197, 118),
-        title: Text(
-          'Kalkulator BMI',
-          style: TextStyle(color: Colors.white, letterSpacing: 5),
+        elevation: 0,
+        backgroundColor: _primaryColor,
+        title: const Text(
+          'KALKULATOR BMI',
+          style: TextStyle(
+            color: Colors.white,
+            letterSpacing: 2,
+            fontWeight: FontWeight.bold,
+          ),
         ),
-        leading: Icon(Icons.calculate, color: Colors.white),
         centerTitle: true,
       ),
       body: SafeArea(
         child: SingleChildScrollView(
-          padding: EdgeInsets.all(30),
+          padding: const EdgeInsets.all(24),
           child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
-              // Pilihan Jenis Kelamin
+              // 1. Pilihan Jenis Kelamin (Modern Cards)
               Row(
-                mainAxisAlignment: MainAxisAlignment.center,
                 children: [
-                  Radio<String>(
-                    value: 'Laki-laki',
-                    groupValue: _jenisKelamin,
-                    onChanged: (value) {
-                      setState(() {
-                        _jenisKelamin = value!;
-                      });
-                    },
-                  ),
-                  Text('Laki-laki'),
-                  SizedBox(width: 20),
-                  Radio<String>(
-                    value: 'Perempuan',
-                    groupValue: _jenisKelamin,
-                    onChanged: (value) {
-                      setState(() {
-                        _jenisKelamin = value!;
-                      });
-                    },
-                  ),
-                  Text('Perempuan'),
+                  _buildGenderCard('Laki-laki', Icons.male),
+                  const SizedBox(width: 15),
+                  _buildGenderCard('Perempuan', Icons.female),
                 ],
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 30),
 
               TextField(
                 controller: _bbController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: InputDecoration(
-                  border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: Icon(
+                    Icons.monitor_weight_outlined,
+                    color: _primaryColor,
                   ),
-                  icon: Icon(Icons.line_weight_outlined),
-                  labelText: 'Berat Badan (kg)',
+                  labelText: 'Berat Badan',
+                  suffixText: 'kg',
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 20),
               TextField(
                 controller: _tbController,
-                keyboardType: TextInputType.numberWithOptions(decimal: true),
+                keyboardType: const TextInputType.numberWithOptions(
+                  decimal: true,
+                ),
                 decoration: InputDecoration(
+                  filled: true,
+                  fillColor: Colors.white,
+                  prefixIcon: Icon(Icons.height, color: _primaryColor),
+                  labelText: 'Tinggi Badan',
+                  suffixText: 'cm',
                   border: OutlineInputBorder(
-                    borderRadius: BorderRadius.circular(10),
+                    borderRadius: BorderRadius.circular(15),
+                    borderSide: BorderSide.none,
                   ),
-                  icon: Icon(Icons.height),
-                  labelText: 'Tinggi Badan (cm)',
                 ),
               ),
-              SizedBox(height: 20),
+              const SizedBox(height: 30),
+
+              // 3. Tombol Hitung Full Width
               ElevatedButton(
                 onPressed: _hitungBMI,
                 style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
+                  backgroundColor: _primaryColor,
+                  padding: const EdgeInsets.symmetric(vertical: 18),
+                  shape: RoundedRectangleBorder(
+                    borderRadius: BorderRadius.circular(15),
+                  ),
+                  elevation: 2,
                 ),
-                child: Icon(
-                  Icons.calculate,
-                  size: 30,
-                  color: Color.fromARGB(255, 54, 197, 118),
+                child: const Text(
+                  'HITUNG BMI',
+                  style: TextStyle(
+                    fontSize: 18,
+                    fontWeight: FontWeight.bold,
+                    color: Colors.white,
+                    letterSpacing: 1.5,
+                  ),
                 ),
               ),
-              SizedBox(height: 30),
-              Text('Hasil', style: TextStyle(fontSize: 18)),
-              SizedBox(height: 10),
+              const SizedBox(height: 30),
+
+              // 4. Area Hasil (Card dengan Shadow)
               Container(
-                padding: EdgeInsets.all(30),
-                width: double.infinity,
+                padding: const EdgeInsets.all(30),
                 decoration: BoxDecoration(
-                  borderRadius: BorderRadius.circular(10),
-                  color: Color.fromARGB(255, 54, 197, 118),
+                  borderRadius: BorderRadius.circular(20),
+                  gradient: LinearGradient(
+                    colors: [_primaryColor, Color(0xFF2B9D5E)],
+                    begin: Alignment.topLeft,
+                    end: Alignment.bottomRight,
+                  ),
+                  boxShadow: [
+                    BoxShadow(
+                      color: _primaryColor.withOpacity(0.4),
+                      blurRadius: 15,
+                      offset: const Offset(0, 8),
+                    ),
+                  ],
                 ),
                 child: Column(
                   children: [
-                    Text(
-                      _hasilBMI?.toStringAsFixed(1) ?? "--",
+                    const Text(
+                      'HASIL BMI ANDA',
                       style: TextStyle(
-                        fontSize: 32,
+                        color: Colors.white70,
+                        fontSize: 14,
+                        fontWeight: FontWeight.w600,
+                        letterSpacing: 2,
+                      ),
+                    ),
+                    const SizedBox(height: 10),
+                    Text(
+                      _hasilBMI?.toStringAsFixed(1) ?? "0.0",
+                      style: const TextStyle(
+                        fontSize: 48,
                         fontWeight: FontWeight.bold,
                         color: Colors.white,
                       ),
                     ),
-                    SizedBox(height: 10),
+                    const SizedBox(height: 10),
                     Text(
                       _keterangan,
                       textAlign: TextAlign.center,
-                      style: TextStyle(color: Colors.white, fontSize: 16),
+                      style: const TextStyle(
+                        color: Colors.white,
+                        fontSize: 18,
+                        fontWeight: FontWeight.w500,
+                      ),
                     ),
                   ],
                 ),
               ),
-              SizedBox(height: 20),
-              ElevatedButton(
+              const SizedBox(height: 20),
+
+              // 5. Tombol Reset Bentuk TextButton (Lebih rapi)
+              TextButton.icon(
                 onPressed: _reset,
-                style: ElevatedButton.styleFrom(
-                  padding: EdgeInsets.symmetric(vertical: 20, horizontal: 40),
-                ),
-                child: Icon(
-                  Icons.refresh,
-                  size: 30,
-                  color: Color.fromARGB(255, 54, 197, 118),
+                icon: const Icon(Icons.refresh, color: Colors.grey),
+                label: const Text(
+                  'Ulangi Perhitungan',
+                  style: TextStyle(
+                    color: Colors.grey,
+                    fontSize: 16,
+                    fontWeight: FontWeight.bold,
+                  ),
                 ),
               ),
-              SizedBox(height: 10),
-              Text('Reset'),
             ],
           ),
         ),
